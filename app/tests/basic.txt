@@ -1,0 +1,250 @@
+# TRIO in the host simulator: the controls, the settings across a reboot, the keys, the screen reader, Bluetooth MIDI
+# (a computer, a device, on and off).
+#   ./build.sh --host && app/build/host/trio_host app/tests/basic.txt app/build/host
+wait 600
+shot boot.png
+expect state 0
+expect bpm 140
+expect feel 0
+expect piano 1
+expect root -1
+# the knobs: tempo, freedom, drums, swing
+turn K1 4
+wait 30
+expect bpm 144
+expect dirty 1
+turn K2 -5
+wait 30
+expect freedom 40
+turn K3 5
+wait 30
+expect energy 60
+# ARP: the feel, AUTO -> TWO -> FOUR -> AUTO
+tap ARP
+wait 30
+expect feel 1
+tap ARP
+wait 30
+expect feel 2
+# GLO: the mix page; PRESET there: the piano's sound off (a piano of its own makes it)
+tap GLO
+wait 30
+expect page 1
+turn K2 -5
+wait 30
+expect vol_bass 70
+turn PRESET 1
+wait 30
+expect piano 0
+shot mix.png
+tap GLO
+wait 30
+expect page 0
+# SAVE: kept across a power cycle
+tap SAVE
+wait 30
+expect dirty 0
+expect store_writes 1
+reboot
+wait 600
+expect bpm 144
+expect freedom 40
+expect energy 60
+expect feel 2
+expect vol_bass 70
+expect piano 0
+tap GLO
+wait 30
+turn PRESET 1
+wait 30
+expect piano 1
+tap GLO
+wait 30
+# the FM-1's keys: a chord on them (C minor 7, root lowest: F3 is key 0, C4 key 7) is heard as one
+tap OCT-
+wait 30
+expect octave -1
+key 7 down 90
+key 10 down 90
+key 14 down 90
+key 17 down 90
+wait 120
+expect root 0
+expect qual 2
+wav keys.wav
+wait 300
+wavstop
+expect peak_db_min -40
+key 7 up
+key 10 up
+key 14 up
+key 17 up
+wait 50
+# a key held across an octave change lets go of its note
+key 0 down 90
+wait 20
+tap OCT+
+wait 30
+key 0 up
+wait 30
+expect octave 0
+# PLAY: the count-in, then the band; PLAY again stops it
+tap PLAY
+wait 30
+expect state 1
+wait 1900
+expect state 2
+tap PLAY
+wait 50
+expect state 0
+# the screen reader hears the whole screen, and the knobs as they turn
+listen
+wait 100
+said TRIO. STOPPED
+turn K1 1
+wait 30
+said TEMPO 145 BPM
+tap ARP
+wait 30
+said FEEL AUTO
+# Bluetooth MIDI (fm1.toml ble, ble_central): on from the start (the simulator's stack is ready a second in)
+expect ble 2
+expect ble_off 0
+# a computer or a tablet connects to the FM-1 and plays a chord over it: D7 (D F# A C)
+ble connect
+wait 50
+said COMPUTER CONNECTED
+midi BLE 90 32 50
+midi BLE 90 36 50
+midi BLE 90 39 50
+midi BLE 90 3C 50
+wait 120
+expect root 2
+expect qual 1
+expect ble_held 4
+# the computer goes with the chord held: its notes are let go, so the next chord (F7, over USB) is heard alone
+ble disconnect
+wait 50
+said COMPUTER DISCONNECTED
+expect ble_held 0
+midi 90 35 50
+midi 90 39 50
+midi 90 3C 50
+midi 90 3F 50
+wait 120
+expect root 5
+expect qual 1
+midi 80 35 00
+midi 80 39 00
+midi 80 3C 00
+midi 80 3F 00
+wait 50
+# SEL: the Bluetooth page, which looks for MIDI devices (the simulator's one: BLE MIDI, found half a second in);
+# SEL before anything is found: no device
+tap SEL
+wait 30
+said BLUETOOTH ON
+expect page 2
+tap SEL
+said NO DEVICE
+wait 700
+said DEVICE BLE MIDI
+expect pick 0
+turn ALGO 1
+said DEVICE BLE MIDI
+expect pick 0
+shot bluetooth.png
+# SEL again connects to it: DEV lights in the header, and its chord reaches the band (Bbmaj7: Bb D F A)
+tap SEL
+said CONNECTING BLE MIDI
+wait 500
+said CONNECTED BLE MIDI
+expect ble_dev 4
+midi BLE 90 2E 50
+midi BLE 90 32 50
+midi BLE 90 35 50
+midi BLE 90 39 50
+wait 120
+expect root 10
+expect qual 0
+expect ble_held 4
+shot bluetooth-connected.png
+where
+said FEEL AUTO. DEVICE BLE MIDI
+# SEL once more lets it go, chord and all (and says neither NO ANSWER nor DEVICE LOST); the page looks again
+tap SEL
+said DISCONNECTED BLE MIDI
+wait 100
+expect ble_dev 1
+expect ble_held 0
+unsaid NO ANSWER
+unsaid LOST
+# let go while it is still connecting: not a NO ANSWER either, and forgotten once the page looks again (so a real
+# NO ANSWER later is said)
+wait 600
+said DEVICE BLE MIDI
+tap SEL
+said CONNECTING BLE MIDI
+expect ble_dev 2
+tap SEL
+said DISCONNECTED BLE MIDI
+wait 100
+unsaid NO ANSWER
+expect ble_dev 1
+expect let_go 0
+# PRESET on the page: Bluetooth off (the header's BLE and DEV go), kept by SAVE: off after a restart too
+turn PRESET 1
+said BLUETOOTH OFF
+expect ble 0
+expect ble_off 1
+expect dirty 1
+tap SAVE
+wait 30
+expect dirty 0
+reboot
+wait 1200
+expect ble 0
+expect ble_off 1
+expect page 0
+where
+said AUTO. BLUETOOTH OFF
+# off since power-on, the radio starts when switched on, and the FM-1's sound stops for its first second: so not
+# while the band plays
+tap PLAY
+wait 30
+tap SEL
+said BLUETOOTH OFF
+turn PRESET 1
+said STOP FIRST
+expect ble 0
+expect ble_off 1
+tap SEL
+said BLUETOOTH OFF
+tap PLAY
+wait 50
+turn PRESET 1
+said BLUETOOTH ON
+wait 1100
+expect ble 2
+expect ble_off 0
+# once started, off and on again needs no new start: fine while the band plays
+tap PLAY
+wait 30
+turn PRESET 1
+said BLUETOOTH OFF
+turn PRESET 1
+said BLUETOOTH ON
+wait 1100
+expect ble 2
+wait 1500
+expect state 2
+expect missed 0
+tap PLAY
+wait 50
+tap SAVE
+wait 30
+expect dirty 0
+# GLO from the Bluetooth page: the band's
+tap GLO
+said BAND
+expect page 0

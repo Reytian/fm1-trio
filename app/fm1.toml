@@ -1,0 +1,18 @@
+# TRIO's build settings (fm1-base tools/build.py)
+name = "TRIO"                  # APP_NAME is in app.h; this names the build's files
+id_prefix = "FM-1_52"          # package identity: dev FM-1_5200, releases FM-1_52XXYYZZ (the 5s are Reytian's: MIN-1 is 5)
+usb_manufacturer = "TRIO"
+usb_product = "TRIO FM-1"
+include = ["dsp"]
+o2 = ["dsp/trio.c", "dsp/voice.c", "dsp/trio_nn.c"]   # the engine, the voices, the networks: -O2
+words = "words.tsv"
+font_full = ["L"]              # the big chord name has lower case (Bbm7, Cmaj7)
+ble = true                     # Bluetooth MIDI in: a computer or a tablet connects to the FM-1 (--no-ble: without)
+ble_central = true             # and the FM-1 connects to a Bluetooth MIDI keyboard or digital piano (SEL's page)
+usb_audio_in = true            # the trio recordable over USB
+usb_audio_out = false
+# the site (tools/make_site.py, tools/publish_site.sh)
+tagline = "play the chords: a walking bass and a drummer play with you"
+repo = "https://github.com/Reytian/fm1-trio"
+licence = "MPL-2.0"
+credits = "Built on fm1-base by Charles Vestal and felucca-bsp by Leo Kuroshita. The bass network learned from FiloBass (CC BY 4.0) and the drummer from JazzSAMBA (MIT; Copyright (c) 2026 Phillip Long and contributors)."
