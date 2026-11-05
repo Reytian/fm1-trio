@@ -22,7 +22,7 @@ small neural networks running on the FM-1's own chip: no computer, no internet. 
 - **It learns your line.** Press EDIT and play the bass yourself for a chorus or two: the FM-1 fine-tunes the bass
   network's last layer on your line, in about a second, and from then on the bass walks more the way you do.
 
-**Status: 0.1, the first release.** It installs and runs on the FM-1. It was developed and tested in fm1-base's host
+**Status: 0.1.1.** It installs and runs on the FM-1. It was developed and tested in fm1-base's host
 simulator and browser emulator, which run the same code; the networks' timing on the chip is estimated from
 instruction counts and hasn't been measured on the device yet. Reports are welcome in the issues.
 
@@ -37,11 +37,17 @@ You need an M-VAVE FM-1, a USB cable, and Chrome or Edge.
 To try TRIO first without an FM-1, open [the emulator](https://reytian.github.io/fm1-trio/emu/): the same code, with
 sound, played with a MIDI keyboard on the computer or the computer's keys.
 
-From a terminal instead: download `trio-0.1.fwsc` from the [releases](https://github.com/Reytian/fm1-trio/releases),
-then, in a clone of this repository, run `python3 base/tools/fm1_install.py trio-0.1.fwsc` (it needs
+From a terminal instead: download `trio-0.1.1.fwsc` from the [releases](https://github.com/Reytian/fm1-trio/releases),
+then, in a clone of this repository, run `python3 base/tools/fm1_install.py trio-0.1.1.fwsc` (it needs
 `pip install mido python-rtmidi`).
 
 To go back to M-VAVE's own firmware, use the installer page's last section. Installing is at your own risk.
+
+**Newer FM-1s.** Units sold since autumn 2026 (mostly AliExpress) carry another flash chip, the UC25HQ80 (ID
+0xB36014). TRIO knows it from 0.1.1. On such a unit 0.1 kept its saves in RAM, gone at power-off, and refused every
+update, so nothing could be installed over it. The FM-1 itself is fine, but installing again won't help:
+[the hub's rescue page](https://thefirmwarehub.com/tools/rescue/#chip) shows how to put a firmware back through the
+chip's download mode. 0.1.1 hasn't been tried on such a unit yet; reports are welcome.
 
 ## Play
 
@@ -183,6 +189,11 @@ FM-1 自己的键盘可以弹和弦，OCT− 和 OCT+ 移八度。MIDI 键盘或
 
 ### 现状
 
-0.1，第一个版本。可以装在 FM-1 上运行；开发和测试主要在 fm1-base 的模拟器里完成（和 FM-1 跑的是同一份代码），
+0.1.1。可以装在 FM-1 上运行；开发和测试主要在 fm1-base 的模拟器里完成（和 FM-1 跑的是同一份代码），
 网络在芯片上的实际耗时是按指令数估的，还没在实机上量。设计和测量见 [docs/DESIGN.md](docs/DESIGN.md)（中文）。
 有问题欢迎在 issues 里报告。
+
+**新批次的 FM-1。** 2026 年秋天以后卖出的机器（大多来自速卖通）换了一颗闪存芯片 UC25HQ80（ID 0xB36014）。TRIO 从
+0.1.1 起认识它。在这种机器上，0.1 的保存只留在内存里，关机就没了，而且拒绝一切更新，什么固件都装不上去。机器本身没坏，
+但反复重装没有用：按 [The Firmware Hub 的救援页](https://thefirmwarehub.com/tools/rescue/#chip)，通过芯片的下载模式写入
+固件。0.1.1 还没有在这种机器上试过，欢迎反馈。
